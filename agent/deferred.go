@@ -19,7 +19,11 @@ func deferredSystem(sysText string, def DeferredInfo) (system []string, boundary
 	sysText += def.FindingGuidance
 	block := actool.RenderDeferredToolsBlock(def.GlobalNames)
 	if block == "" {
-		return []string{sysText}, 0
+		// No global MCP block, but the system prompt is still session-fixed, so cache
+		// it: boundary == len → the whole prompt is the static prefix (SDK guard). A
+		// boundary of 0 sends no cache_control at all, which is why the planner ran at
+		// 0% cache hit — it re-paid full price on the stable system prompt every round.
+		return []string{sysText}, 1
 	}
 	system = []string{sysText, block}
 	boundary = len(system) // b >= len → whole system prompt cached (SDK guard)
